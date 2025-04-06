@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modern Spot | Premium Beauty & Wellness</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.8/ScrollMagic.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#FFF1F8',
+              100: '#FFE4F0',
+              200: '#FFC9E1',
+              300: '#FF9EC7',
+              400: '#FF74AE',
+              500: '#FF4996',
+              600: '#FF1F7F',
+              700: '#E6006A',
+              800: '#B30053',
+              900: '#80003B',
+            }
+          },
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+            display: ['Playfair Display', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+    
+    .gradient-text {
+      background: linear-gradient(90deg, #FF1F7F 0%, #FF74AE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .scroll-indicator {
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+      40% {transform: translateY(-20px);}
+      60% {transform: translateY(-15px);}
+    }
+    
+    .service-card {
+      transition: all 0.3s ease;
+    }
+    
+    .service-card:hover {
+      transform: translateY(-10px);
+    }
+    
+    .nav-link {
+      position: relative;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background: linear-gradient(90deg, #FF1F7F 0%, #FF74AE 100%);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after,
+    .nav-link.active::after {
+      width: 100%;
+    }
+    
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    
+    /* Canvas Containers */
+    #hero-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    
+    #ambient-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    /* Animated gradient border */
+    .gradient-border {
+      position: relative;
+      border-radius: 1rem;
+      padding: 4px;
+      background: linear-gradient(60deg, #FF1F7F, #FF74AE, #FF9EC7, #FF1F7F);
+      background-size: 300% 300%;
+      animation: gradient-shift 4s ease infinite;
+    }
+    
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    /* Testimonial slider */
+    .testimonial-slider {
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+    }
+    
+    .testimonial-slide {
+      scroll-snap-align: start;
+    }
+    
+    /* Floating animation for icons */
+    .floating {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    /* Service icons pulse */
+    .service-icon {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800 overflow-x-hidden">
+  <!-- p5.js Background Canvas -->
+  <div id="ambient-canvas"></div>
+  
+  <!-- Navigation -->
+  <nav id="main-nav" class="fixed w-full top-0 z-50 transition-all duration-300">
+    <div class="glass-effect">
+      <div class="max-w-7xl mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+          <!-- Logo -->
+          <a href="#" class="flex items-center space-x-2">
+            <span class="text-3xl font-display font-bold gradient-text">M<span class="text-2xl">odern</span>S<span class="text-2xl">pot</span></span>
+          </a>
+          
+          <!-- Desktop Navigation -->
+          <div class="hidden md:flex items-center space-x-8">
+            <a href="#home" class="nav-link active text-gray-800 hover:text-brand-600 font-medium transition">Home</a>
+            <a href="#about" class="nav-link text-gray-800 hover:text-brand-600 font-medium transition">About</a>
+            <a href="#services" class="nav-link text-gray-800 hover:text-brand-600 font-medium transition">Services</a>
+            <a href="#gallery" class="nav-link text-gray-800 hover:text-brand-600 font-medium transition">Gallery</a>
+            <a href="#testimonials" class="nav-link text-gray-800 hover:text-brand-600 font-medium transition">Testimonials</a>
+            <a href="#team" class="nav-link text-gray-800 hover:text-brand-600 font-medium transition">Our Team</a>
+            <a href="#contact" class="nav-link text-gray-800 hover:text-brand-600 font-medium transition">Contact</a>
+          </div>
+          
+          <!-- Book Now Button -->
+          <a href="#book" class="hidden md:block bg-brand-600 hover:bg-brand-700 text-white font-medium px-6 py-2 rounded-full transition transform hover:scale-105">
+            Book Now
+          </a>
+          
+          <!-- Mobile Menu Button -->
+          <button id="mobile-menu-button" class="md:hidden text-gray-800 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden glass-effect">
+      <div class="px-4 py-3 space-y-3">
+        <a href="#home" class="block text-gray-800 hover:text-brand-600 font-medium py-2 transition">Home</a>
+        <a href="#about" class="block text-gray-800 hover:text-brand-600 font-medium py-2 transition">About</a>
+        <a href="#services" class="block text-gray-800 hover:text-brand-600 font-medium py-2 transition">Services</a>
+        <a href="#gallery" class="block text-gray-800 hover:text-brand-600 font-medium py-2 transition">Gallery</a>
+        <a href="#testimonials" class="block text-gray-800 hover:text-brand-600 font-medium py-2 transition">Testimonials</a>
+        <a href="#team" class="block text-gray-800 hover:text-brand-600 font-medium py-2 transition">Our Team</a>
+        <a href="#contact" class="block text-gray-800 hover:text-brand-600 font-medium py-2 transition">Contact</a>
+        <a href="#book" class="block bg-brand-600 hover:bg-brand-700 text-white font-medium px-6 py-2 rounded-full text-center transition">
+          Book Now
+        </a>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Hero Section with Three.js -->
+  <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+    <div id="hero-canvas" class="absolute inset-0"></div>
+    <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
+      <h1 class="text-5xl md:text-7xl font-display font-bold mb-6">
+        <span class="gradient-text">Redefine</span> Your Beauty
+      </h1>
+      <p class="text-xl md:text-2xl text-gray-700 mb-10">Where modern elegance meets premium care, designed for the extraordinary you.</p>
+      <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+        <a href="#services" class="bg-brand-600 hover:bg-brand-700 text-white font-medium px-8 py-3 rounded-full transition transform hover:scale-105 w-full md:w-auto">
+          Explore Services
+        </a>
+        <a href="#book" class="bg-transparent border-2 border-brand-600 text-brand-600 hover:bg-brand-50 font-medium px-8 py-3 rounded-full transition transform hover:scale-105 w-full md:w-auto">
+          Book Appointment
+        </a>
+      </div>
+      <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 scroll-indicator">
+        <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+      </div>
+    </div>
+  </section>
+  
+  <!-- About Section -->
+  <section id="about" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center gap-12">
+        <!-- 3D Model Container -->
+        <div class="w-full md:w-1/2 h-96 rounded-2xl bg-brand-50 overflow-hidden relative" id="about-3d-container">
+          <!-- Placeholder for 3D model -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="p-8 rounded-full bg-brand-100 service-icon">
+              <svg class="w-16 h-16 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <!-- About Content -->
+        <div class="w-full md:w-1/2">
+          <h2 class="text-4xl font-display font-bold mb-6">About <span class="gradient-text">Modern Spot</span></h2>
+          <p class="text-lg text-gray-700 mb-6">
+            Founded in 2020, Modern Spot has rapidly evolved into Colombo's premier beauty and wellness destination. We blend luxury treatments with personalized care, creating an experience that transcends the ordinary salon visit.
+          </p>
+          <p class="text-lg text-gray-700 mb-8">
+            Our philosophy centers on enhancing your natural beauty while providing a serene escape from daily stress. Every treatment is tailored to your unique needs, delivered by professionals who are masters of their craft.
+          </p>
+          
+          <!-- Stats -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="text-center">
+              <div class="text-3xl font-bold gradient-text">5+</div>
+              <div class="text-gray-600">Years Experience</div>
+            </div>
+            <div class="text-center">
+              <div class="text-3xl font-bold gradient-text">12</div>
+              <div class="text-gray-600">Expert Stylists</div>
+            </div>
+            <div class="text-center">
+              <div class="text-3xl font-bold gradient-text">25+</div>
+              <div class="text-gray-600">Services</div>
+            </div>
+            <div class="text-center">
+              <div class="text-3xl font-bold gradient-text">5K+</div>
+              <div class="text-gray-600">Happy Clients</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Services Section -->
+  <section id="services" class="py-24 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-display font-bold mb-4">Premium <span class="gradient-text">Services</span></h2>
+        <p class="text-xl text-gray-700 max-w-3xl mx-auto">Discover our carefully curated selection of treatments designed to bring out your best self.</p>
+      </div>
+      
+      <!-- Services Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Hair Services -->
+        <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="h-48 bg-brand-100 flex items-center justify-center">
+            <div class="service-icon p-4 rounded-full bg-white shadow-md">
+              <svg class="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-2xl font-display font-bold mb-3">Hair Artistry</h3>
+            <p class="text-gray-700 mb-6">From precision cuts to vibrant colors and transformative treatments, our stylists create looks that express your unique personality.</p>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>Signature Cut</span>
+                <span class="font-medium">$45+</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Color & Highlights</span>
+                <span class="font-medium">$85+</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Keratin Treatment</span>
+                <span class="font-medium">$120+</span>
+              </div>
+            </div>
+            <button class="mt-6 w-full text-brand-600 hover:text-brand-700 font-medium flex items-center justify-center">
+              View All Hair Services
+              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Nail Services -->
+        <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="h-48 bg-brand-100 flex items-center justify-center">
+            <div class="service-icon p-4 rounded-full bg-white shadow-md">
+              <svg class="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-2xl font-display font-bold mb-3">Nail Perfection</h3>
+            <p class="text-gray-700 mb-6">Elevate your hands and feet with our luxurious nail services, featuring premium products and artistic designs.</p>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>Classic Manicure</span>
+                <span class="font-medium">$35</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Gel Polish</span>
+                <span class="font-medium">$45</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Luxury Pedicure</span>
+                <span class="font-medium">$60</span>
+              </div>
+            </div>
+            <button class="mt-6 w-full text-brand-600 hover:text-brand-700 font-medium flex items-center justify-center">
+              View All Nail Services
+              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Facial Services -->
+        <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="h-48 bg-brand-100 flex items-center justify-center">
+            <div class="service-icon p-4 rounded-full bg-white shadow-md">
+              <svg class="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-2xl font-display font-bold mb-3">Facial & Skin</h3>
+            <p class="text-gray-700 mb-6">Revitalize your skin with customized facials and treatments targeting your specific needs and concerns.</p>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>Signature Facial</span>
+                <span class="font-medium">$75</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Hydrating Treatment</span>
+                <span class="font-medium">$90</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Anti-Aging Facial</span>
+                <span class="font-medium">$120</span>
+              </div>
+            </div>
+            <button class="mt-6 w-full text-brand-600 hover:text-brand-700 font-medium flex items-center justify-center">
+              View All Skin Services
+              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Body Services -->
+        <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="h-48 bg-brand-100 flex items-center justify-center">
+            <div class="service-icon p-4 rounded-full bg-white shadow-md">
+              <svg class="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-2xl font-display font-bold mb-3">Body Wellness</h3>
+            <p class="text-gray-700 mb-6">Rejuvenate your body and mind with our therapeutic massage and body treatments focused on relaxation and recovery.</p>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>Swedish Massage</span>
+                <span class="font-medium">$85</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Deep Tissue</span>
+                <span class="font-medium">$95</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Body Scrub</span>
+                <span class="font-medium">$70</span>
+              </div>
+            </div>
+            <button class="mt-6 w-full text-brand-600 hover:text-brand-700 font-medium flex items-center justify-center">
+              View All Body Services
+              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Makeup Services -->
+        <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="h-48 bg-brand-100 flex items-center justify-center">
+            <div class="service-icon p-4 rounded-full bg-white shadow-md">
+              <svg class="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-2xl font-display font-bold mb-3">Makeup Artistry</h3>
+            <p class="text-gray-700 mb-6">From natural everyday looks to glamorous event makeup, our artists enhance your features with precision and creativity.</p>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>Day Makeup</span>
+                <span class="font-medium">$60</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Evening Glam</span>
+                <span class="font-medium">$85</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Bridal Makeup</span>
+                <span class="font-medium">$150+</span>
+              </div>
+            </div>
+            <button class="mt-6 w-full text-brand-600 hover:text-brand-700 font-medium flex items-center justify-center">
+              View All Makeup Services
+              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Package Services -->
+        <div class="service-card bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="h-48 bg-brand-100 flex items-center justify-center">
+            <div class="service-icon p-4 rounded-full bg-white shadow-md">
+              <svg class="w-10 h-10 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-2xl font-display font-bold mb-3">Luxury Packages</h3>
+            <p class="text-gray-700 mb-6">Comprehensive beauty experiences combining multiple services for a complete transformation and maximum relaxation.</p>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span>Self-Care Day</span>
+                <span class="font-medium">$180</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Bridal Package</span>
+                <span class="font-medium">$350+</span>
+              </div>
+              <div class="flex justify-between">
+                <span>VIP Experience</span>
+                <span class="font-medium">$250</span>
+              </div>
+            </div>
+            <button class="mt-6 w-full text-brand-600 hover:text-brand-700 font-medium flex items-center justify-center">
+              View All Packages
+              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+</body>
+</html>
